@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>MoneyPilot - Finanzplaner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <script src="chart.umd.min.js"></script>
+</head>
+<body>
+ 
+  <!-- Header mit logo.jpg -->
+  <header class="app-header">
+    <div class="header-content">
+      <img src="logo.png" alt="MoneyPilot Logo" class="logo">
+      <h1 class="app-title">MoneyPilot</h1>
+      <p class="app-subtitle">Intelligente Finanzplanung für jeden Monat</p>
+      <!-- User Info Display -->
+      <div id="userInfo" class="user-info" style="display:none;">
+        <span id="userName"></span>
+        <button id="logoutBtn" class="logout-btn">Abmelden</button>
+      </div>
+    </div>
+  </header>
+ 
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <button class="nav-btn active" data-view="current">Aktueller Monat</button>
+    <button class="nav-btn" data-view="overview">Monatsübersicht</button>
+    <button class="nav-btn" data-view="yearly">Jahresansicht</button>
+  </nav>
+ 
+  <!-- Monatsnavigation -->
+  <div class="month-nav" id="monthNav">
+    <button id="prevMonth">‹</button>
+    <span id="currentMonthDisplay">September 2025</span>
+    <button id="nextMonth">›</button>
+  </div>
+ 
+  <!-- Aktueller Monat View -->
+  <div id="currentView" class="view-container active">
+    <div class="dashboard">
+      <div class="circleCard">
+        <h3>Ausgaben Übersicht</h3>
+        <!--<span id="sum-history">–0,00 € <small>Spent in Monat</small></span>-->
+        <div class="circle-container">
+          <button id="addCircleBtn" title="Kategorie/Budget hinzufügen">+</button>
+          <button id="moreBtn" title="Weitere Optionen">︙</button>
+          <canvas id="outChart" width="320" height="320"></canvas>
+          <div class="simple-legend" id="budgetLegend">
+    <div class="legend-entry notwendig">
+      <span class="legend-dot"></span>
+      <span class="legend-label">Notwendig</span>
+    </div>
+    <div class="legend-entry wuensche">
+      <span class="legend-dot"></span>
+      <span class="legend-label">Wünsche</span>
+    </div>
+    <div class="legend-entry sparen">
+      <span class="legend-dot"></span>
+      <span class="legend-label">Sparen</span>
+    </div>
+  </div>
+
+  <div id="circleCenter">
+            
+            <div id="centerBudget" onclick="editMonthlyBudget()">0,00 €</div>
+            <small>Monatsbudget (klicken zum Ändern)</small>
+            <div id="centerSpent">Ausgegeben: 0,00 €</div>
+             <div id="customTooltip" class="custom-tooltip"></div>
+            
+          </div>
+        </div>
+      </div>
+      <div class="inputCard">
+        <h3>Kategorien/Budgets</h3>
+        <ul id="cat-list"></ul>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Monatsübersicht View -->
+  <div id="overviewView" class="view-container">
+    <div class="overview-container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Durchschnitt letzte 3 Monate</h3>
+          <div class="stat-value" id="avg3Months">0,00 €</div>
+        </div>
+        <div class="stat-card">
+          <h3>Durchschnitt letzte 6 Monate</h3>
+          <div class="stat-value" id="avg6Months">0,00 €</div>
+        </div>
+        <div class="stat-card">
+          <h3>Höchste Ausgabe</h3>
+          <div class="stat-value" id="maxExpense">0,00 €</div>
+        </div>
+        
+        </div>
+      </div>
+      <div class="monthly-list">
+        <h3>Monatshistorie</h3>
+        <div id="monthlyHistory"></div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Jahresansicht View -->
+  <div id="yearlyView" class="view-container">
+    <div class="yearly-container">
+      <h2 id="yearTitle">2025 Jahresübersicht</h2>
+      <div class="year-nav">
+        <button id="prevYear">‹ 2024</button>
+        <button id="nextYear">2026 ›</button>
+      </div>
+      <div class="yearly-grid" id="yearlyGrid">
+        <!-- Wird per JS gefüllt -->
+      </div>
+      <div class="year-summary">
+        <div class="summary-card">
+          <h3>Gesamtausgaben</h3>
+          <div class="summary-value" id="yearTotal">0,00 €</div>
+        </div>
+        <div class="summary-card">
+          <h3>Monatsschnitt</h3>
+          <div class="summary-value" id="yearAverage">0,00 €</div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Mehr-Optionen Modal -->
+  <dialog id="moreOptionsModal">
+    <form id="moreOptionsForm">
+      <h3>Weitere Optionen</h3>
+      <div class="options-grid">
+        <button type="button" class="option-btn" id="retoureOption">
+          <span class="option-icon">↩️</span>
+          <span class="option-text">Retoure verbuchen</span>
+        </button>
+        <button type="button" class="option-btn" id="exportOption">
+          <span class="option-icon">📊</span>
+          <span class="option-text">Daten exportieren</span>
+        </button>
+        <!--<button type="button" class="option-btn" id="settingsOption">
+          <span class="option-icon">︙</span>
+          <span class="option-text">Einstellungen</span>
+        </button>-->
+        <button type="button" class="option-btn" id="helpOption">
+          <span class="option-icon">❓</span>
+          <span class="option-text">Hilfe</span>
+        </button>
+      </div>
+      <menu>
+        <button type="button" id="moreCloseBtn">Schließen</button>
+      </menu>
+      <button type="button" class="option-btn" id="budgetPlanOption">
+        <span class="option-icon">📈</span>
+        <span class="option-text">50/30/20 Budgetplaner</span>
+    </button>
+    </form>
+  </dialog>
+
+ 
+
+<!-- Modal für 50/30/20 Budgetplaner -->
+<dialog id="budgetPlanModal">
+  <form id="budgetPlanForm" autocomplete="off">
+    <h3>50/30/20 Budgetplaner</h3>
+    <div class="input-group">
+      <input type="number" id="plannerIncome" min="0" step="1" placeholder="Monatseinkommen (€)" required>
+    </div>
+    <div id="plannerResult" style="margin-bottom:1em;"></div>
+    <menu>
+      <button type="button" id="budgetPlanCancel">Abbrechen</button>
+      <button type="submit" id="budgetPlanApply">Übernehmen</button>
+    </menu>
+    <div id="hauptkategorie-container">
+    <label for="hauptkategorie">Hauptkategorie wählen…</label>
+    <select id="hauptkategorie">
+      <option value="">– bitte wählen –</option>
+       </select>
+  </div>
+  </form>
+</dialog>
+
+<!-- Modal für Monatsbudget (nur UI) -->
+<dialog id="monthlyBudgetModal">
+  <form id="monthlyBudgetForm" autocomplete="off">
+    <h3>Monatsbudget bearbeiten</h3>
+    <div class="input-group">
+      <input type="number" id="monthlyBudgetInput" min="0" step="0.01" placeholder="Monatsbudget (€)">
+    </div>
+    <div class="input-group" style="margin-top:0.5rem; border-top:1px solid #eee; padding-top:0.5rem;">
+      <label style="font-size:0.95em; display:flex; align-items:center; gap:0.5rem;">
+        <input type="checkbox" id="recurringIncome" class="recurring-checkbox">
+        <span>Monatlich wiederkehrend </span>
+      </label>
+    </div>
+    <menu>
+      <button type="button" id="monthlyBudgetCancel">Abbrechen</button>
+      <button type="button" id="monthlyBudgetSave">Speichern</button>
+    </menu>
+  </form>
+</dialog>
+ 
+  <!-- Hauptmodal (wie vorher) -->
+  <dialog id="modalDialog">
+    <form id="modalForm" autocomplete="off">
+      <h3 id="modalTitle">Neue Kategorie/Budget anlegen</h3>
+      <div id="modalAddCat">
+        <div class="input-group">
+          <select id="modalCatSelect">
+            <option value="">Kategorie wählen...</option>
+            <option value="Miete">Miete</option>
+            <option value="Lebensmittel">Lebensmittel</option>
+            <option value="Transport">Transport</option>
+            <option value="Kleidung">Kleidung</option>
+            <option value="Unterhaltung">Unterhaltung</option>
+            <option value="Gesundheit">Gesundheit</option>
+            <option value="Elektronik">Elektronik</option>
+            <option value="Sport">Sport</option>
+            <option value="Bildung">Bildung</option>
+            <option value="Reisen">Reisen</option>
+            <option value="Sonstiges">Sonstiges</option>
+            <option value="custom">Eigene Kategorie...</option>
+          </select>
+          <input type="text" id="modalCatName" placeholder="Eigene Kategorie" style="display:none;">
+        </div>
+        <input type="number" id="modalCatBudget" placeholder="Budget (€)" min="0" step="0.01" required>
+        <div id="budgetErrorMsg" class="error-msg" style="display:none;color:#e74c3c;margin-top:0.5rem;"></div>
+<div id="budgetInfoMsg" class="info-msg" style="display:none;color:#2ecc71;margin-top:0.5rem;"></div>
+
+        <select id="modalEmojiSelect">
+          <option value="">Emoji wählen...</option>
+          <option value="🏠">🏠 Haus/Miete</option>
+          <option value="🛒">🛒 Einkaufen</option>
+          <option value="🚗">🚗 Transport</option>
+          <option value="👕">👕 Kleidung</option>
+          <option value="🎬">🎬 Unterhaltung</option>
+          <option value="💊">💊 Gesundheit</option>
+          <option value="📱">📱 Elektronik</option>
+          <option value="⚽">⚽ Sport</option>
+          <option value="📚">📚 Bildung</option>
+          <option value="✈️">✈️ Reisen</option>
+          <option value="💰">💰 Geld</option>
+          <option value="🔧">🔧 Werkzeug</option>
+          <option value="🎯">🎯 Ziele</option>
+          <option value="📦">📦 Sonstiges</option>
+        </select>
+        <div class="input-group" style="margin-top:0.6rem; border-top:1px dashed #eee; padding-top:0.6rem;">
+          <label style="font-size:0.95em; display:flex; align-items:center; gap:0.5rem;">
+            <input type="checkbox" id="recurringCategory" class="recurring-checkbox">
+            <span>Monatlich wiederkehrend</span>
+          </label>
+        </div>
+      </div>
+      <div id="modalBookExpense" style="display:none;">
+        <div><b id="expenseCatName"></b></div>
+        <div>Restbudget: <span id="expenseCatRest"></span> €</div>
+        <input type="number" id="modalExpense" placeholder="Ausgabe" min="0" step="0.01" required>
+        <span>€</span>
+        <div style="margin-top:0.6rem; border-top:1px dashed #eee; padding-top:0.6rem;">
+          <label style="font-size:0.95em; display:flex; align-items:center; gap:0.5rem;">
+            <input type="checkbox" id="recurringExpense" class="recurring-checkbox">
+            <span>Monatlich wiederkehrend</span>
+          </label>
+        </div>
+      </div>
+      <div id="modalRetoureMode" style="display:none;">
+        <div><b>Retoure verbuchen</b></div>
+        <select id="retoureCatSelect" required>
+          <option value="">Kategorie wählen...</option>
+        </select>
+        <input type="number" id="retoureAmount" placeholder="Retourenbetrag" min="0" step="0.01" required>
+        <span>€</span>
+      </div>
+      <menu>
+        <button type="button" id="cancelBtn">Abbrechen</button>
+        <button type="button" id="saveBtn">Speichern</button>
+      </menu>
+      <select id="modalParentSelect" required>
+  <option value="">Hauptkategorie wählen...</option>
+  <option value="notwendig">Notwendig</option>
+  <option value="wuensche">Wünsche</option>
+  <option value="sparen">Sparen</option>
+</select>
+    </form>
+  </dialog>
+
+  <!-- Login/Registrierung Modal -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-container">
+      <div class="auth-form-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form active">
+          <h2>Anmelden</h2>
+          <form id="loginFormElement" novalidate>
+            <div class="input-group">
+              <input type="email" id="loginEmail" placeholder="E-Mail" required>
+              <span class="error-message" id="loginEmailError"></span>
+            </div>
+            <div class="input-group">
+              <input type="password" id="loginPassword" placeholder="Passwort" required>
+              <span class="error-message" id="loginPasswordError"></span>
+            </div>
+            <button type="submit" class="auth-btn">Anmelden</button>
+            <div class="auth-switch">
+              Noch kein Konto? <a href="#" id="showRegister">Registrieren</a>
+            </div>
+          </form>
+        </div>
+
+        <!-- Registrierung Form -->
+        <div id="registerForm" class="auth-form">
+          <h2>Registrieren</h2>
+          <form id="registerFormElement" novalidate>
+            <div class="input-group">
+              <input type="text" id="registerName" placeholder="Vollständiger Name" required>
+              <span class="error-message" id="registerNameError"></span>
+            </div>
+            <div class="input-group">
+              <input type="email" id="registerEmail" placeholder="E-Mail" required>
+              <span class="error-message" id="registerEmailError"></span>
+            </div>
+            <div class="input-group">
+              <input type="password" id="registerPassword" placeholder="Passwort (min. 6 Zeichen)" required>
+              <span class="error-message" id="registerPasswordError"></span>
+            </div>
+            <div class="input-group">
+              <input type="password" id="registerPasswordConfirm" placeholder="Passwort bestätigen" required>
+              <span class="error-message" id="registerPasswordConfirmError"></span>
+            </div>
+            <button type="submit" class="auth-btn">Registrieren</button>
+            <div class="auth-switch">
+              Bereits ein Konto? <a href="#" id="showLogin">Anmelden</a>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <script src="script.js"></script>
+  
+</body>
+</html>
