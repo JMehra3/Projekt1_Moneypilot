@@ -3468,7 +3468,14 @@ h3,
   color: #e74c3c !important; /* Rotton */
 }
 
-
+#loginEmail,
+#loginPassword,
+#registerName,
+#registerEmail,
+#registerPassword,
+#registerPasswordConfirm {
+  color: #fff !important;
+}
 
 
 
